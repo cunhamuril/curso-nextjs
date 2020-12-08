@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { GetServerSideProps } from "next";
 
 import { Title } from "../styles/pages/Home";
 
@@ -7,19 +7,13 @@ interface IProduct {
   title: string;
 }
 
-export default function Home() {
-  const [recommendedProducts, setRecommendedProducts] = useState<IProduct[]>([
-    { id: "", title: "" },
-  ]);
+interface IHomeProps {
+  recommendedProducts: IProduct[];
+}
 
-  useEffect(() => {
-    fetch("http://localhost:3333/recommended").then((response) => {
-      response.json().then((data) => {
-        setRecommendedProducts(data);
-      });
-    });
-  }, []);
+// TTFB - Time to first byte
 
+export default function Home({ recommendedProducts }: IHomeProps) {
   return (
     <div>
       <section>
@@ -33,3 +27,17 @@ export default function Home() {
     </div>
   );
 }
+
+/**
+ * Utiliza-se assim quando as informações precisam ser indexadas
+ */
+export const getServerSideProps: GetServerSideProps<IHomeProps> = async () => {
+  const response = await fetch("http://localhost:3333/recommended");
+  const recommendedProducts = await response.json();
+
+  return {
+    props: {
+      recommendedProducts,
+    },
+  };
+};
