@@ -13,6 +13,10 @@ interface ICategoryProps {
 export default function Category({ products }: ICategoryProps) {
   const router = useRouter();
 
+  if (router.isFallback) {
+    return <p>Carregando...</p>; // Loading caso esteja utilizando fallback
+  }
+
   return (
     <div>
       <h1>{router.query.slug}</h1>
@@ -26,6 +30,9 @@ export default function Category({ products }: ICategoryProps) {
   );
 }
 
+/**
+ * Vai buscar os possíveis paths para colocar no lugar do slug
+ */
 export const getStaticPaths: GetStaticPaths = async () => {
   const response = await fetch("http://localhost:3333/categories");
   const categories = await response.json();
@@ -38,10 +45,13 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
   return {
     paths,
-    fallback: false,
+    fallback: true, // Vai fazer uma nova requisição sempre que for buscado um novo termo no slug
   };
 };
 
+/**
+ * Vai buscar os dados pelo slug estaticamente
+ */
 export const getStaticProps: GetStaticProps<ICategoryProps> = async (
   context
 ) => {
