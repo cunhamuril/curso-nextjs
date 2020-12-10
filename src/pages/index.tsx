@@ -21,6 +21,12 @@ export default function Home({ recommendedProducts }: IHomeProps) {
     const math = (await import("../lib/math")).default;
 
     alert(math.sum(3, 5));
+
+    /**
+     * Quando é colocado NEXT_PUBLIC_ antes do nome da variável, a variável vai aparecer no browser,
+     * caso contrário não, dai só funcionaria para o node podendo utilizar nas funções do tipo "getServerSideProps"
+     */
+    console.log(process.env.NEXT_PUBLIC_API_URL);
   }
 
   return (
@@ -44,7 +50,9 @@ export default function Home({ recommendedProducts }: IHomeProps) {
  * Utiliza-se assim quando as informações precisam ser indexadas
  */
 export const getServerSideProps: GetServerSideProps<IHomeProps> = async () => {
-  const response = await fetch("http://localhost:3333/recommended");
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/recommended`
+  );
   const recommendedProducts = await response.json();
 
   return {
