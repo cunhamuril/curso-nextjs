@@ -5,13 +5,10 @@ import { useRouter } from "next/router";
 /**
  * Lazy load de componente
  */
-const AddToCartModal = dynamic(
-  () => import("../../../components/AddToCartModal"),
-  {
-    loading: () => <p>Loading...</p>,
-    ssr: false, // Não vai ser renderizado pelo lado do servidor, sim pelo browser
-  }
-);
+const AddToCartModal = dynamic(() => import("@/components/AddToCartModal"), {
+  loading: () => <p>Loading...</p>,
+  ssr: false, // Não vai ser renderizado pelo lado do servidor, sim pelo browser
+});
 
 export default function Search() {
   const router = useRouter();

@@ -1,6 +1,6 @@
 import { GetServerSideProps } from "next";
 
-import { Title } from "../styles/pages/Home";
+import { Title } from "@/styles/pages/Home";
 
 interface IProduct {
   id: string;
@@ -18,7 +18,7 @@ export default function Home({ recommendedProducts }: IHomeProps) {
     /**
      * Importação dinâmica: só carrega quando for solicitado o uso
      */
-    const math = (await import("../lib/math")).default;
+    const math = (await import("@/lib/math")).default;
 
     alert(math.sum(3, 5));
 
