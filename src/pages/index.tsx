@@ -1,35 +1,18 @@
 import { GetServerSideProps } from "next";
+import Link from "next/link";
+import Prismic from "prismic-javascript";
+import { Document } from "prismic-javascript/types/documents";
+import PrismicDOM from "prismic-dom";
 
 import { Title } from "@/styles/pages/Home";
 import SEO from "@/components/SEO";
-
-interface IProduct {
-  id: string;
-  title: string;
-}
+import { client } from "@/lib/prismic";
 
 interface IHomeProps {
-  recommendedProducts: IProduct[];
+  recommendedProducts: Document[];
 }
 
-// TTFB - Time to first byte
-
 export default function Home({ recommendedProducts }: IHomeProps) {
-  async function handleSum() {
-    /**
-     * Importação dinâmica: só carrega quando for solicitado o uso
-     */
-    const math = (await import("@/lib/math")).default;
-
-    alert(math.sum(3, 5));
-
-    /**
-     * Quando é colocado NEXT_PUBLIC_ antes do nome da variável, a variável vai aparecer no browser,
-     * caso contrário não, dai só funcionaria para o node podendo utilizar nas funções do tipo "getServerSideProps"
-     */
-    console.log(process.env.NEXT_PUBLIC_API_URL);
-  }
-
   return (
     <div>
       <SEO title="DevCommerce, your best ecommerce" shouldExcludeTitleSuffix />
@@ -39,12 +22,16 @@ export default function Home({ recommendedProducts }: IHomeProps) {
 
         <ul>
           {recommendedProducts.map((recommendedProduct) => (
-            <li key={recommendedProduct.id}>{recommendedProduct.title}</li>
+            <li key={recommendedProduct.id}>
+              <Link href={`/products/${recommendedProduct.uid}`}>
+                <a>
+                  {PrismicDOM.RichText.asText(recommendedProduct.data.title)}
+                </a>
+              </Link>
+            </li>
           ))}
         </ul>
       </section>
-
-      <button onClick={handleSum}>Sum!</button>
     </div>
   );
 }
@@ -53,14 +40,13 @@ export default function Home({ recommendedProducts }: IHomeProps) {
  * Utiliza-se assim quando as informações precisam ser indexadas
  */
 export const getServerSideProps: GetServerSideProps<IHomeProps> = async () => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/recommended`
-  );
-  const recommendedProducts = await response.json();
+  const recommendedProducts = await client().query([
+    Prismic.Predicates.at("document.type", "product"),
+  ]);
 
   return {
     props: {
-      recommendedProducts,
+      recommendedProducts: recommendedProducts.results,
     },
   };
 };
