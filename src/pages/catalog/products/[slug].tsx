@@ -1,31 +1,54 @@
-import { useState } from "react";
-import dynamic from "next/dynamic";
-import { useRouter } from "next/router";
+import { client } from "@/lib/prismic";
+import { GetStaticPaths, GetStaticProps } from "next";
+import { Document } from "prismic-javascript/types/documents";
+import PrismicDOM from "prismic-dom";
 
-/**
- * Lazy load de componente
- */
-const AddToCartModal = dynamic(() => import("@/components/AddToCartModal"), {
-  loading: () => <p>Loading...</p>,
-  ssr: false, // Não vai ser renderizado pelo lado do servidor, sim pelo browser
-});
+interface IProductProps {
+  product: Document;
+}
 
-export default function Search() {
-  const router = useRouter();
-
-  const [isAddToCartModalVisible, setIsAddToCartModalVisible] = useState(false);
-
-  function handleAddToCart() {
-    setIsAddToCartModalVisible(true);
-  }
-
+export default function Product({ product }: IProductProps) {
   return (
     <div>
-      <h1>{router.query.slug}</h1>
+      <h1>{PrismicDOM.RichText.asText(product.data.title)}</h1>
 
-      <button onClick={handleAddToCart}>Add to cart</button>
+      <img src={product.data.thumbnail.url} width="300" alt="alt" />
 
-      {isAddToCartModalVisible && <AddToCartModal />}
+      <div
+        dangerouslySetInnerHTML={{
+          __html: PrismicDOM.RichText.asHtml(product.data.description),
+        }}
+      />
+
+      <p>Price: ${product.data.price}</p>
     </div>
   );
 }
+
+/**
+ * Vai buscar os possíveis paths para colocar no lugar do slug
+ */
+export const getStaticPaths: GetStaticPaths = async () => {
+  return {
+    paths: [],
+    fallback: true, // Vai fazer uma nova requisição sempre que for buscado um novo termo no slug
+  };
+};
+
+/**
+ * Vai buscar os dados pelo slug estaticamente
+ */
+export const getStaticProps: GetStaticProps<IProductProps> = async (
+  context
+) => {
+  const { slug } = context.params;
+
+  const product = await client().getByUID("product", String(slug), {});
+
+  return {
+    props: {
+      product,
+    },
+    revalidate: 5,
+  };
+};
